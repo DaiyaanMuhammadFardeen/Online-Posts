@@ -1,0 +1,176 @@
+#include <stdio.h>
+#include <stdlib.h> //for rand()
+#include <unistd.h> //for sleep()
+#include <time.h> //for seed
+#include <sys/ioctl.h>
+
+int randomInt(int min, int max);	//generates a random number between min and max
+void randArray_sorted(int *arr, int len, int range, int power);
+void printArray(int *arr, int len, int key); //prints the array with colored key value
+void printIndices(int *arr, int len, int start, int end);	//prints the indexes
+void printSpace(int n){
+	for(int i=0; i<n; i++){
+		printf(" ");
+	}
+}
+void printNL(int n){
+	for(int i=0; i<n; i++){
+		printf("\n");
+	}
+}
+
+int main(){
+	/* setup */
+	srand(time(NULL)); //random number seed.
+	printf("\033[2J");	//clear screen
+	printf("\033[H");	//bring cursor to top left corner
+
+	/* for centering the banner */
+	struct winsize w;
+	ioctl(0, TIOCGWINSZ, &w);
+
+	printNL(w.ws_row/2 - 7); //centering vertically
+	printSpace(w.ws_col/2 - 23);printf(" ██████╗ ██╗███╗   ██╗ █████╗ ██████╗ ██╗   ██╗ \n");
+	printSpace(w.ws_col/2 - 23);printf(" ██╔══██╗██║████╗  ██║██╔══██╗██╔══██╗╚██╗ ██╔╝ \n");
+	printSpace(w.ws_col/2 - 23);printf(" ██████╔╝██║██╔██╗ ██║███████║██████╔╝ ╚████╔╝  \n");
+	printSpace(w.ws_col/2 - 23);printf(" ██╔══██╗██║██║╚██╗██║██╔══██║██╔══██╗  ╚██╔╝   \n");
+	printSpace(w.ws_col/2 - 23);printf(" ██████╔╝██║██║ ╚████║██║  ██║██║  ██║   ██║    \n");
+	printSpace(w.ws_col/2 - 23);printf(" ╚═════╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝    \n");
+	printSpace(w.ws_col/2 - 23);printf("                                                \n");
+	printSpace(w.ws_col/2 - 23);printf("███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗\n");
+	printSpace(w.ws_col/2 - 23);printf("██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝██║  ██║\n");
+	printSpace(w.ws_col/2 - 23);printf("███████╗█████╗  ███████║██████╔╝██║     ███████║\n");
+	printSpace(w.ws_col/2 - 23);printf("╚════██║██╔══╝  ██╔══██║██╔══██╗██║     ██╔══██║\n");
+	printSpace(w.ws_col/2 - 23);printf("███████║███████╗██║  ██║██║  ██║╚██████╗██║  ██║\n");
+	printSpace(w.ws_col/2 - 23);printf("╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝\n");
+	printNL(w.ws_row/2 - 7); //centering vertically
+	sleep(3);
+	printf("\033[2J");	//clear screen
+	printf("\033[H");	//bring cursor to top left corner
+
+	/* getting the length */
+	int len;
+	printf("Length: ");
+	scanf("%d", &len);
+	if(6*len > w.ws_col){
+		printf("To experience a better demonstration, give a smaller length.\nThe most optimum would be %d\n", w.ws_col/6);
+		exit(0);
+	}
+
+	/* getting the random sorted array */
+	sleep(1);	//dramatic effect!
+	int arr[len];
+	randArray_sorted(arr, len, 1000, 1);
+	printf("Random sorted array generated...\n");
+
+	/* getting the values */
+	sleep(1);	//more dramatic effect
+	int key = arr[randomInt(0, len)];	//getting a random value from the array
+	printf("Got the key value (%d)...\n", key);
+	int low = 0;
+	int high = len-1;
+	int mid = (low + high)/2;
+
+	sleep(1);	//not enough dramatic effect!!
+	printf("\n");
+
+	/* main engine */
+	while(arr[mid] != key){
+		printf("\033[3mSearching from \033[2;34m%d to %d...\n\033[0m", low, high);
+
+		mid = (low + high) / 2;
+		if (high - low == 1 && low != 0) mid++;	//for cases like low=19 and high=20, mid will always be 19. And then the cycle continues
+
+		/* output */
+		printArray(arr, len, key);
+		printIndices(arr, len, low, high);
+		printf("\n");
+		printf("\n");
+
+		/* logic */
+		if(arr[mid] > key){
+			high = mid; //should be high = mid -1. But for demonstration, its not here
+		}
+		else if(arr[mid] < key){
+			low = mid;	//again should be low = mid + 1
+		}
+
+		printf("\033[34mMid: %d\033[0m\n", mid);
+		sleep(2); //ok. Done with the dramatic effects
+
+	}
+
+	/* final output */
+	printf("Found in \033[1;32m%d no\033[0m index\n", mid);
+	printArray(arr, len, key);
+	printIndices(arr, len, mid, mid);
+	printf("\n");
+
+	sleep(10); //JK! D R A M A T I C     E F F E C T!!
+	return 0;
+}
+
+int randomInt(int min, int max){	//generates a random number between min and max
+	int n = (rand() % (max - min + 1)) + min;
+	return n;
+}
+
+void randArray_sorted(int *arr, int len, int range, int power){
+	power %= 10;	//making sure the power value is a single digit number
+	/* power value decides how sparse the difference is going to be*/
+
+	arr[0] = randomInt(0, range); //initiating the array with a random value
+
+	for(int i=1; i<len; i++){
+		arr[i] = arr[i-1] + randomInt(0, power*10);
+		/*array value = previous value + a random_difference*/
+	}
+	/*the for loops generates sequential numbers with random differences.*/
+	/*differences range from 0 to 10 times the power variable*/
+}
+
+int binary_search_recursive(int *arr, int min, int max, int key){
+	/*getting the mid index*/
+	int mid = (min+max)/2;
+
+	//if the mid index value is greater than key, the key should be in the first half
+	if(arr[mid] > key){
+		return binary_search_recursive(arr,min,mid-1,key);
+	}
+
+	//if it's smaller, it should be on the latter half
+else if (arr[mid] < key){
+		return binary_search_recursive(arr,mid+1,max,key);
+	}
+
+	//if none of the others, the value of the mid index has to be the key, So return it
+else{
+		return mid;
+	}
+}
+
+void printArray(int *arr, int len, int key){ //prints the array with colored key value
+	for(int i=0; i<len; i++){
+		if(arr[i] == key){
+			printf("\033[1;4;33m");	//underline and yellow color
+			printf(" %4d ", arr[i]);
+			printf("\033[0m");
+		}
+		else{
+			printf(" %4d ", arr[i]);
+		}
+	}
+}
+
+void printIndices(int *arr, int len, int start, int end){	//prints the indexes
+	printf("\n");
+	for(int i=0; i<len; i++){
+		if(i == start || i == end){
+			printf("\033[1;4;32m");
+		}else if(i > start && i < end){
+			printf("\033[4;31m");
+		}
+		printf("  %2d  ", i);
+		printf("\033[0m");
+	}
+}
